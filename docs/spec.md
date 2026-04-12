@@ -163,7 +163,7 @@ A small **panel overlayed on top of the canvas, anchored to the right edge** of 
 ### 6.6 Persistence
 
 - **Autosave.** Every change is automatically saved to the browser's local storage within ~1 second, so closing the tab and coming back later restores exactly where the designer left off — including the attached background image.
-- **Export.** The designer can export the current map as a single `.json` file named after the map. The file describes the zone graph (zones, edges, properties, map name). It is versioned so future editor versions can migrate older files. **It does not include the background reference image** — see §6.5.
+- **Export.** The designer can export the current map as a single `.json` file named after the map. The file describes the zone graph (zones, edges, properties, map name). It is versioned so future editor versions can migrate older files.
 - **Import.** The designer can import a previously-exported `.json` file. If the file is malformed or from an incompatible version, the editor shows an error and leaves the current map untouched. Imported maps do not carry a background; the designer re-attaches one if they want to.
 - **New map.** A "New Map" button clears the canvas. Because this destroys the current work, it is confirmed with a dialog ("Start a new map? Your current map will be cleared. Export first if you want to keep it.").
 
@@ -232,7 +232,7 @@ The editor is considered shipped when a first-time user, with no instructions, c
 8. Move a zone, undo the move, redo the move.
 9. Delete a zone and observe that its edges also disappear; then undo to restore both the zone and its edges.
 10. Refresh the browser and see the exact same map (including background image) restored.
-11. Export the map to a file, start a new map, then import the file and see the original zone graph back (background image is not expected to return — that behavior is documented in §6.5).
+11. Export the map to a file, start a new map, then import the file and see the original zone graph back.
 12. Import a deliberately broken file and see a clear error that does **not** destroy the current map.
 
 If all twelve steps succeed without the user asking for help, v1 is done.
