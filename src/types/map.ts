@@ -25,6 +25,8 @@ export type BackgroundGeometry = {
   offsetY: number;
   width: number;
   height: number;
+  /** Uniform scale multiplier, 0.5–2.0. Defaults to 1.0 when absent. */
+  scale?: number;
 };
 
 export type MapDoc = {

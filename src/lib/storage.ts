@@ -18,7 +18,12 @@ export function loadMap(): MapDoc | null {
   try {
     const raw = localStorage.getItem(MAP_KEY);
     if (!raw) return null;
-    return JSON.parse(raw) as MapDoc;
+    const doc = JSON.parse(raw) as MapDoc;
+    // Backwards-compat: old saves lack scale; default to 1.0
+    if (doc.background && doc.background.scale === undefined) {
+      doc.background.scale = 1;
+    }
+    return doc;
   } catch {
     return null;
   }
