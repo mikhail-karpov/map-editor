@@ -1,9 +1,11 @@
 import type { ExportedMap, MapDoc } from '@/types/map';
 
 export function exportMap(doc: MapDoc): void {
+  // Strip editor-only fields (border) from the exported payload
+  const { ...exportableDoc } = doc;
   const exported: ExportedMap = {
     version: 1,
-    map: doc,
+    map: exportableDoc as MapDoc,
   };
   const json = JSON.stringify(exported, null, 2);
   const blob = new Blob([json], { type: 'application/json' });
@@ -15,9 +17,7 @@ export function exportMap(doc: MapDoc): void {
   URL.revokeObjectURL(url);
 }
 
-export type ImportResult =
-  | { ok: true; doc: MapDoc }
-  | { ok: false; error: string };
+export type ImportResult = { ok: true; doc: MapDoc } | { ok: false; error: string };
 
 export function parseImport(raw: string): ImportResult {
   let parsed: unknown;
@@ -89,8 +89,8 @@ export function parseImport(raw: string): ImportResult {
     if (
       !bg ||
       typeof bg !== 'object' ||
-      typeof (bg as Record<string, unknown>).offsetX !== 'number' ||
-      typeof (bg as Record<string, unknown>).offsetY !== 'number' ||
+      typeof (bg as Record<string, unknown>).x !== 'number' ||
+      typeof (bg as Record<string, unknown>).y !== 'number' ||
       typeof (bg as Record<string, unknown>).width !== 'number' ||
       typeof (bg as Record<string, unknown>).height !== 'number'
     ) {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type Tool = 'select' | 'addZone' | 'connect' | 'pan' | 'background';
+export type Tool = 'select' | 'addZone' | 'connect' | 'pan' | 'background' | 'adjustBorder';
 
 type ToolState = {
   activeTool: Tool;

@@ -10,8 +10,8 @@ export function BackgroundLayer({ geom, objectUrl }: Props) {
   return (
     <image
       href={objectUrl}
-      x={geom.offsetX}
-      y={geom.offsetY}
+      x={geom.x}
+      y={geom.y}
       width={geom.width * scale}
       height={geom.height * scale}
       preserveAspectRatio="xMidYMid meet"

@@ -1,4 +1,4 @@
-import { MousePointer2, CircleDot, Spline, Hand, Image } from 'lucide-react';
+import { MousePointer2, CircleDot, Spline, Hand, Image, Crop } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToolStore, useActiveTool, type Tool } from '@/store/toolStore';
@@ -17,6 +17,7 @@ const TOOLS: ToolDef[] = [
   { id: 'connect', label: 'Connect', shortcut: 'C', Icon: Spline },
   { id: 'pan', label: 'Pan', shortcut: 'H', Icon: Hand },
   { id: 'background', label: 'Background', shortcut: 'B', Icon: Image },
+  { id: 'adjustBorder', label: 'Adjust Border', shortcut: 'E', Icon: Crop },
 ];
 
 export function Toolbar() {

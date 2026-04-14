@@ -1,5 +1,6 @@
 import { get, set, del } from 'idb-keyval';
 import type { MapDoc } from '@/types/map';
+import { DEFAULT_MAP_BORDER } from '@/constants/mapBorder';
 
 const MAP_KEY = 'mapEditor:doc';
 const BG_IMAGE_KEY = 'mapEditor:bgImage';
@@ -22,6 +23,16 @@ export function loadMap(): MapDoc | null {
     // Backwards-compat: old saves lack scale; default to 1.0
     if (doc.background && doc.background.scale === undefined) {
       doc.background.scale = 1;
+    }
+    // Backwards-compat: old saves lack border; default to DEFAULT_MAP_BORDER
+    if (
+      !doc.border ||
+      typeof doc.border.width !== 'number' ||
+      doc.border.width <= 0 ||
+      typeof doc.border.height !== 'number' ||
+      doc.border.height <= 0
+    ) {
+      doc.border = DEFAULT_MAP_BORDER;
     }
     return doc;
   } catch {

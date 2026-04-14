@@ -9,8 +9,8 @@ type Props = {
   onBgAttached: (
     url: string,
     geom: {
-      offsetX: number;
-      offsetY: number;
+      x: number;
+      y: number;
       width: number;
       height: number;
     }

@@ -21,12 +21,19 @@ export type Edge = {
 };
 
 export type BackgroundGeometry = {
-  offsetX: number;
-  offsetY: number;
+  x: number;
+  y: number;
   width: number;
   height: number;
   /** Uniform scale multiplier, 0.5–2.0. Defaults to 1.0 when absent. */
   scale?: number;
+};
+
+export type MapBorder = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 };
 
 export type MapDoc = {
@@ -34,6 +41,7 @@ export type MapDoc = {
   zones: Zone[];
   edges: Edge[];
   background?: BackgroundGeometry;
+  border: MapBorder;
 };
 
 export type ExportedMap = {

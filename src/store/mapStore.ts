@@ -10,11 +10,12 @@ import type {
   SelectionState,
   BackgroundGeometry,
 } from '@/types/map';
+import { DEFAULT_MAP_BORDER } from '@/constants/mapBorder';
 
 const MAX_HISTORY = 100;
 
 function defaultDoc(): MapDoc {
-  return { name: 'My Map', zones: [], edges: [] };
+  return { name: 'My Map', zones: [], edges: [], border: DEFAULT_MAP_BORDER };
 }
 
 function deepClone<T>(val: T): T {
@@ -51,6 +52,7 @@ type MapActions = {
   clearBackground: () => void;
   replaceDoc: (doc: MapDoc) => void;
   newMap: () => void;
+  resizeBorder: (params: { x: number; y: number; width: number; height: number }) => void;
 
   // Selection (no history)
   select: (sel: SelectionState) => void;
@@ -231,8 +233,13 @@ export const useMapStore = create<MapStore>()((set, get) => ({
   },
 
   replaceDoc(doc: MapDoc) {
+    const b = doc.border;
+    const border =
+      b && typeof b.width === 'number' && b.width > 0 && typeof b.height === 'number' && b.height > 0
+        ? { x: b.x ?? 0, y: b.y ?? 0, width: b.width, height: b.height }
+        : DEFAULT_MAP_BORDER;
     set({
-      doc: { ...doc },
+      doc: { ...doc, border },
       past: [],
       future: [],
       selection: { kind: 'none' },
@@ -248,6 +255,16 @@ export const useMapStore = create<MapStore>()((set, get) => ({
       selection: { kind: 'none' },
       _txSnapshot: null,
     });
+  },
+
+  resizeBorder(params: { x: number; y: number; width: number; height: number }) {
+    set((s) => ({
+      ...pushHistory(s),
+      doc: {
+        ...s.doc,
+        border: params,
+      },
+    }));
   },
 
   // ── Selection ────────────────────────────────────────────────────────────

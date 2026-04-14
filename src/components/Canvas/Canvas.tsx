@@ -5,6 +5,8 @@ import { useViewportStore, useViewport } from '@/store/viewportStore';
 import { screenToWorld } from '@/lib/geometry';
 
 import { BackgroundLayer } from './BackgroundLayer';
+import { MapBorderLayer } from './MapBorderLayer';
+import { BorderHandlesLayer, type HandleId } from './BorderHandlesLayer';
 import { EdgesLayer } from './EdgesLayer';
 import { ZonesLayer } from './ZonesLayer';
 import { GhostLine } from './GhostLine';
@@ -29,6 +31,7 @@ export function Canvas({ bgObjectUrl }: Props) {
   const beginTransaction = useMapStore((s) => s.beginTransaction);
   const commitTransaction = useMapStore((s) => s.commitTransaction);
   const setBackgroundGeometry = useMapStore((s) => s.setBackgroundGeometry);
+  const resizeBorder = useMapStore((s) => s.resizeBorder);
 
   const { setConnectSource } = useToolStore();
   const zoom = useViewportStore((s) => s.zoom);
@@ -41,16 +44,29 @@ export function Canvas({ bgObjectUrl }: Props) {
   const [panDragging, setPanDragging] = useState(false);
 
   // Drag state
-  const dragRef = useRef<{
-    kind: 'zone' | 'pan' | 'background';
-    id?: string;
-    startX: number;
-    startY: number;
-    originTx?: number;
-    originTy?: number;
-    bgStartOffsetX?: number;
-    bgStartOffsetY?: number;
-  } | null>(null);
+  const dragRef = useRef<
+    | {
+        kind: 'zone' | 'pan' | 'background';
+        id?: string;
+        startX: number;
+        startY: number;
+        originTx?: number;
+        originTy?: number;
+        bgStartOffsetX?: number;
+        bgStartOffsetY?: number;
+      }
+    | {
+        kind: 'borderHandle';
+        handle: HandleId;
+        startX: number;  // pointer world X at pointer-down
+        startY: number;  // pointer world Y at pointer-down
+        startBX: number; // border.x at drag start
+        startBY: number; // border.y at drag start
+        startW: number;  // border.width at drag start
+        startH: number;  // border.height at drag start
+      }
+    | null
+  >(null);
 
   // Temporary space-pan (doesn't change active tool in store)
   const spacePanRef = useRef(false);
@@ -115,8 +131,8 @@ export function Canvas({ bgObjectUrl }: Props) {
             kind: 'background',
             startX: e.clientX,
             startY: e.clientY,
-            bgStartOffsetX: doc.background.offsetX,
-            bgStartOffsetY: doc.background.offsetY,
+            bgStartOffsetX: doc.background.x,
+            bgStartOffsetY: doc.background.y,
           };
           beginTransaction();
           e.currentTarget.setPointerCapture(e.pointerId);
@@ -181,10 +197,45 @@ export function Canvas({ bgObjectUrl }: Props) {
         const dy = (e.clientY - drag.startY) / vp.scale;
         const newGeom: BackgroundGeometry = {
           ...doc.background,
-          offsetX: drag.bgStartOffsetX! + dx,
-          offsetY: drag.bgStartOffsetY! + dy,
+          x: drag.bgStartOffsetX! + dx,
+          y: drag.bgStartOffsetY! + dy,
         };
         setBackgroundGeometry(newGeom);
+        return;
+      }
+
+      if (drag?.kind === 'borderHandle') {
+        const wp = getSvgPoint(e);
+        const dx = wp.x - drag.startX;
+        const dy = wp.y - drag.startY;
+        const MIN = 200;
+        const { handle, startBX, startBY, startW: w, startH: h } = drag;
+
+        let x = startBX;
+        let y = startBY;
+        let newW = w;
+        let newH = h;
+
+        // Left edge: move x, shrink width
+        if (handle === 'tl' || handle === 'bl' || handle === 'l') {
+          newW = Math.max(MIN, w - dx);
+          x = startBX + (w - newW);
+        }
+        // Right edge: grow width
+        if (handle === 'tr' || handle === 'r' || handle === 'br') {
+          newW = Math.max(MIN, w + dx);
+        }
+        // Top edge: move y, shrink height
+        if (handle === 'tl' || handle === 't' || handle === 'tr') {
+          newH = Math.max(MIN, h - dy);
+          y = startBY + (h - newH);
+        }
+        // Bottom edge: grow height
+        if (handle === 'br' || handle === 'b' || handle === 'bl') {
+          newH = Math.max(MIN, h + dy);
+        }
+
+        resizeBorder({ x, y, width: newW, height: newH });
         return;
       }
 
@@ -201,6 +252,7 @@ export function Canvas({ bgObjectUrl }: Props) {
       getSvgPoint,
       moveZone,
       setBackgroundGeometry,
+      resizeBorder,
     ]
   );
 
@@ -211,6 +263,9 @@ export function Canvas({ bgObjectUrl }: Props) {
         commitTransaction();
       }
       if (drag?.kind === 'background') {
+        commitTransaction();
+      }
+      if (drag?.kind === 'borderHandle') {
         commitTransaction();
       }
       if (drag?.kind === 'pan') {
@@ -251,6 +306,28 @@ export function Canvas({ bgObjectUrl }: Props) {
       setPanDragging(true);
     },
     [vp]
+  );
+
+  // ── Border handle pointer events ────────────────────────────────────────
+
+  const onBorderHandlePointerDown = useCallback(
+    (handle: HandleId, e: React.PointerEvent<SVGRectElement>) => {
+      e.stopPropagation();
+      const wp = getSvgPoint(e);
+      beginTransaction();
+      svgRef.current!.setPointerCapture(e.pointerId);
+      dragRef.current = {
+        kind: 'borderHandle',
+        handle,
+        startX: wp.x,
+        startY: wp.y,
+        startBX: doc.border.x,
+        startBY: doc.border.y,
+        startW: doc.border.width,
+        startH: doc.border.height,
+      };
+    },
+    [getSvgPoint, beginTransaction, doc.border]
   );
 
   // ── Zone pointer events ─────────────────────────────────────────────────
@@ -358,6 +435,9 @@ export function Canvas({ bgObjectUrl }: Props) {
           <BackgroundLayer geom={doc.background} objectUrl={bgObjectUrl} />
         )}
 
+        {/* Map border frame */}
+        <MapBorderLayer border={doc.border} activeTool={activeTool} />
+
         {/* Edges */}
         <EdgesLayer
           edges={doc.edges}
@@ -383,6 +463,14 @@ export function Canvas({ bgObjectUrl }: Props) {
           connectSourceId={connectSourceId}
           onZonePointerDown={onZonePointerDown}
         />
+
+        {/* Border adjustment handles */}
+        {activeTool === 'adjustBorder' && (
+          <BorderHandlesLayer
+            border={doc.border}
+            onHandlePointerDown={onBorderHandlePointerDown}
+          />
+        )}
       </g>
     </svg>
   );

@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -12,16 +12,34 @@ type Props = {
   bgObjectUrl: string | null;
   onBgAttached: (
     url: string,
-    geom: { offsetX: number; offsetY: number; width: number; height: number }
+    geom: { x: number; y: number; width: number; height: number }
   ) => void;
   onBgCleared: () => void;
 };
 
 export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) {
   const doc = useDoc();
-  const { renameMap, setBackgroundGeometry, clearBackground, beginTransaction, commitTransaction } =
+  const { renameMap, setBackgroundGeometry, clearBackground, beginTransaction, commitTransaction, resizeBorder } =
     useMapStore();
   const fileRef = useRef<HTMLInputElement>(null);
+
+  // null = not editing (show doc value); string = user is typing
+  const [editingW, setEditingW] = useState<string | null>(null);
+  const [editingH, setEditingH] = useState<string | null>(null);
+
+  function commitBorderSize(rawW: string, rawH: string) {
+    const w = Math.max(200, Number(rawW) || doc.border.width);
+    const h = Math.max(200, Number(rawH) || doc.border.height);
+    beginTransaction();
+    resizeBorder({ x: doc.border.x, y: doc.border.y, width: w, height: h });
+    commitTransaction();
+    setEditingW(null);
+    setEditingH(null);
+  }
+
+  function onBorderKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+  }
 
   const currentScale = doc.background?.scale ?? 1;
   const scalePercent = Math.round(currentScale * 100);
@@ -39,8 +57,8 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
     const img = new window.Image();
     img.onload = () => {
       const geom = {
-        offsetX: 0,
-        offsetY: 0,
+        x: doc.background?.x ?? 0,
+        y: doc.background?.y ?? 0,
         width: img.naturalWidth,
         height: img.naturalHeight,
         scale: doc.background?.scale ?? 1,
@@ -88,6 +106,36 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
           onChange={(e) => renameMap(e.target.value)}
           className="h-8 text-sm"
         />
+      </div>
+
+      <div>
+        <Label className="text-xs text-muted-foreground mb-1 block">Border size</Label>
+        <div className="flex gap-2">
+          <div className="flex-1">
+            <Label className="text-xs text-muted-foreground mb-1 block">W</Label>
+            <Input
+              type="number"
+              min={200}
+              value={editingW ?? doc.border.width}
+              onChange={(e) => setEditingW(e.target.value)}
+              onBlur={() => commitBorderSize(editingW ?? String(doc.border.width), editingH ?? String(doc.border.height))}
+              onKeyDown={onBorderKeyDown}
+              className="h-8 text-sm"
+            />
+          </div>
+          <div className="flex-1">
+            <Label className="text-xs text-muted-foreground mb-1 block">H</Label>
+            <Input
+              type="number"
+              min={200}
+              value={editingH ?? doc.border.height}
+              onChange={(e) => setEditingH(e.target.value)}
+              onBlur={() => commitBorderSize(editingW ?? String(doc.border.width), editingH ?? String(doc.border.height))}
+              onKeyDown={onBorderKeyDown}
+              className="h-8 text-sm"
+            />
+          </div>
+        </div>
       </div>
 
       <div>

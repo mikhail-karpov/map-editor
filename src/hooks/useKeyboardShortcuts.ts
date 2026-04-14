@@ -63,6 +63,11 @@ export function useKeyboardShortcuts() {
           e.preventDefault();
           setTool('background');
           break;
+        case 'e':
+        case 'E':
+          e.preventDefault();
+          setTool('adjustBorder');
+          break;
 
         case 'Delete':
         case 'Backspace': {
