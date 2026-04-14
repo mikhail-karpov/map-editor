@@ -7,6 +7,7 @@ type ViewportState = Viewport;
 type ViewportActions = {
   pan: (dx: number, dy: number) => void;
   zoom: (factor: number, cx: number, cy: number) => void;
+  setZoom: (targetScale: number, cx: number, cy: number) => void;
   setViewport: (vp: Viewport) => void;
 };
 
@@ -23,6 +24,10 @@ export const useViewportStore = create<ViewportStore>()((set) => ({
 
   zoom(factor, cx, cy) {
     set((s) => zoomViewport(s, factor, cx, cy));
+  },
+
+  setZoom(targetScale, cx, cy) {
+    set((s) => zoomViewport(s, targetScale / s.scale, cx, cy));
   },
 
   setViewport(vp) {

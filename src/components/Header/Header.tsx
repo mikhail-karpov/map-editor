@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Undo2, Redo2, FilePlus, Download, Upload } from 'lucide-react';
+import { Undo2, Redo2, FilePlus, Download, Upload, ZoomIn, ZoomOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useMapStore, useDoc, useCanUndo, useCanRedo } from '@/store/mapStore';
+import { useViewportStore } from '@/store/viewportStore';
 import { exportMap, parseImport } from '@/lib/export';
 import { clearBgImage } from '@/lib/storage';
 import { cn } from '@/lib/utils';
@@ -26,6 +27,51 @@ export function Header({ onBgCleared }: Props) {
   const canUndo = useCanUndo();
   const canRedo = useCanRedo();
   const { undo, redo, renameMap, replaceDoc, newMap, clearBackground } = useMapStore();
+
+  const scale = useViewportStore((s) => s.scale);
+  const zoomAction = useViewportStore((s) => s.zoom);
+  const setZoom = useViewportStore((s) => s.setZoom);
+
+  const MIN_SCALE = 0.25;
+  const MAX_SCALE = 4;
+
+  const [zoomDraft, setZoomDraft] = useState<string | null>(null);
+  const cancelZoomRef = useRef(false);
+
+  function getViewportCenter() {
+    return { cx: window.innerWidth / 2, cy: window.innerHeight / 2 };
+  }
+
+  function handleZoomIn() {
+    const { cx, cy } = getViewportCenter();
+    zoomAction(1.1, cx, cy);
+  }
+
+  function handleZoomOut() {
+    const { cx, cy } = getViewportCenter();
+    zoomAction(1 / 1.1, cx, cy);
+  }
+
+  function commitZoomDraft(draft: string) {
+    const match = draft.match(/\d+/);
+    if (match) {
+      const val = Math.min(MAX_SCALE * 100, Math.max(MIN_SCALE * 100, parseInt(match[0], 10)));
+      const { cx, cy } = getViewportCenter();
+      setZoom(val / 100, cx, cy);
+    }
+    setZoomDraft(null);
+  }
+
+  function handleZoomKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Enter') {
+      commitZoomDraft(zoomDraft!);
+      (e.target as HTMLInputElement).blur();
+    } else if (e.key === 'Escape') {
+      cancelZoomRef.current = true;
+      setZoomDraft(null);
+      (e.target as HTMLInputElement).blur();
+    }
+  }
 
   const [showNewDialog, setShowNewDialog] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
@@ -129,6 +175,68 @@ export function Header({ onBgCleared }: Props) {
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
               Redo <kbd className="ml-1 opacity-60">⌘⇧Z</kbd>
+            </TooltipContent>
+          </Tooltip>
+        </div>
+
+        {/* Zoom controls */}
+        <div className="flex gap-1 items-center">
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={handleZoomOut}
+                  disabled={scale <= MIN_SCALE}
+                  aria-label="Zoom out"
+                />
+              }
+            >
+              <ZoomOut size={14} />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Zoom out
+            </TooltipContent>
+          </Tooltip>
+
+          <Input
+            className="h-7 text-xs text-center border-0 bg-transparent px-0 shadow-none focus-visible:ring-0 w-14"
+            value={zoomDraft !== null ? zoomDraft : `${Math.round(scale * 100)} %`}
+            aria-label="Zoom level"
+            onFocus={(e) => {
+              setZoomDraft(String(Math.round(scale * 100)));
+              e.target.select();
+            }}
+            onChange={(e) => setZoomDraft(e.target.value)}
+            onBlur={() => {
+              if (cancelZoomRef.current) {
+                cancelZoomRef.current = false;
+                return;
+              }
+              if (zoomDraft !== null) commitZoomDraft(zoomDraft);
+            }}
+            onKeyDown={handleZoomKeyDown}
+          />
+
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 w-7 p-0"
+                  onClick={handleZoomIn}
+                  disabled={scale >= MAX_SCALE}
+                  aria-label="Zoom in"
+                />
+              }
+            >
+              <ZoomIn size={14} />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Zoom in
             </TooltipContent>
           </Tooltip>
         </div>

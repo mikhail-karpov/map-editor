@@ -15,7 +15,7 @@ export function BackgroundLayer({ geom, objectUrl }: Props) {
       width={geom.width * scale}
       height={geom.height * scale}
       preserveAspectRatio="xMidYMid meet"
-      style={{ pointerEvents: 'none', opacity: 0.65 }}
+      style={{ pointerEvents: 'none', opacity: 0.5 }}
     />
   );
 }
