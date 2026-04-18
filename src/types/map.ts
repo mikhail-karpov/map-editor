@@ -27,6 +27,8 @@ export type BackgroundGeometry = {
   height: number;
   /** Uniform scale multiplier, 0.5–2.0. Defaults to 1.0 when absent. */
   scale?: number;
+  /** Opacity 0–1. Defaults to 0.5 when absent. */
+  opacity?: number;
 };
 
 export type MapBorder = {

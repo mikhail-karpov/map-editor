@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { useMapStore, useDoc } from '@/store/mapStore';
 import { saveBgImage, clearBgImage } from '@/lib/storage';
 
@@ -62,6 +63,7 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
         width: img.naturalWidth,
         height: img.naturalHeight,
         scale: doc.background?.scale ?? 1,
+        opacity: doc.background?.opacity ?? 0.5,
       };
       setBackgroundGeometry(geom);
       saveBgImage(file);
@@ -76,17 +78,12 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
     onBgCleared();
   }
 
-  function handleScalePointerDown() {
-    beginTransaction();
-  }
-
-  function handleScaleChange(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleScaleChange(value: number) {
     if (!doc.background) return;
-    const scale = Number(e.target.value) / 100;
-    setBackgroundGeometry({ ...doc.background, scale });
+    setBackgroundGeometry({ ...doc.background, scale: value / 100 });
   }
 
-  function handleScalePointerUp() {
+  function handleScaleCommit() {
     commitTransaction();
   }
 
@@ -94,6 +91,25 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
     if (!doc.background) return;
     beginTransaction();
     setBackgroundGeometry({ ...doc.background, scale: 1 });
+    commitTransaction();
+  }
+
+  const currentOpacity = doc.background?.opacity ?? 0.5;
+  const opacityPercent = Math.round(currentOpacity * 100);
+
+  function handleOpacityChange(value: number) {
+    if (!doc.background) return;
+    setBackgroundGeometry({ ...doc.background, opacity: value / 100 });
+  }
+
+  function handleOpacityCommit() {
+    commitTransaction();
+  }
+
+  function handleOpacityReset() {
+    if (!doc.background) return;
+    beginTransaction();
+    setBackgroundGeometry({ ...doc.background, opacity: 0.5 });
     commitTransaction();
   }
 
@@ -152,38 +168,62 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
       </div>
 
       {bgObjectUrl && doc.background && (
-        <div>
-          <div className="flex items-center justify-between mb-1">
-            <Label className="text-xs text-muted-foreground">Scale</Label>
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs tabular-nums w-9 text-right">{scalePercent}%</span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-5 px-1.5 text-xs"
-                disabled={scalePercent === 100}
-                onClick={handleScaleReset}
-              >
-                Reset
-              </Button>
+        <>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-xs text-muted-foreground">Scale</Label>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs tabular-nums w-9 text-right">{scalePercent}%</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 px-1.5 text-xs"
+                  disabled={scalePercent === 100}
+                  onClick={handleScaleReset}
+                >
+                  Reset
+                </Button>
+              </div>
+            </div>
+            <div onPointerDown={beginTransaction}>
+              <Slider
+                min={SCALE_MIN}
+                max={SCALE_MAX}
+                step={1}
+                value={scalePercent}
+                onValueChange={handleScaleChange}
+                onValueCommitted={handleScaleCommit}
+              />
             </div>
           </div>
-          <input
-            type="range"
-            min={SCALE_MIN}
-            max={SCALE_MAX}
-            step={1}
-            value={scalePercent}
-            list="scale-snap"
-            className="w-full accent-primary"
-            onPointerDown={handleScalePointerDown}
-            onChange={handleScaleChange}
-            onPointerUp={handleScalePointerUp}
-          />
-          <datalist id="scale-snap">
-            <option value={100} />
-          </datalist>
-        </div>
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <Label className="text-xs text-muted-foreground">Opacity</Label>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs tabular-nums w-9 text-right">{opacityPercent}%</span>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-5 px-1.5 text-xs"
+                  disabled={opacityPercent === 50}
+                  onClick={handleOpacityReset}
+                >
+                  Reset
+                </Button>
+              </div>
+            </div>
+            <div onPointerDown={beginTransaction}>
+              <Slider
+                min={0}
+                max={100}
+                step={1}
+                value={opacityPercent}
+                onValueChange={handleOpacityChange}
+                onValueCommitted={handleOpacityCommit}
+              />
+            </div>
+          </div>
+        </>
       )}
 
       <input
