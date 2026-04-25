@@ -58,12 +58,12 @@ export function Canvas({ bgObjectUrl }: Props) {
     | {
         kind: 'borderHandle';
         handle: HandleId;
-        startX: number;  // pointer world X at pointer-down
-        startY: number;  // pointer world Y at pointer-down
+        startX: number; // pointer world X at pointer-down
+        startY: number; // pointer world Y at pointer-down
         startBX: number; // border.x at drag start
         startBY: number; // border.y at drag start
-        startW: number;  // border.width at drag start
-        startH: number;  // border.height at drag start
+        startW: number; // border.width at drag start
+        startH: number; // border.height at drag start
       }
     | null
   >(null);
@@ -466,10 +466,7 @@ export function Canvas({ bgObjectUrl }: Props) {
 
         {/* Border adjustment handles */}
         {activeTool === 'adjustBorder' && (
-          <BorderHandlesLayer
-            border={doc.border}
-            onHandlePointerDown={onBorderHandlePointerDown}
-          />
+          <BorderHandlesLayer border={doc.border} onHandlePointerDown={onBorderHandlePointerDown} />
         )}
       </g>
     </svg>

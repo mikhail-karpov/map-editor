@@ -20,8 +20,14 @@ type Props = {
 
 export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) {
   const doc = useDoc();
-  const { renameMap, setBackgroundGeometry, clearBackground, beginTransaction, commitTransaction, resizeBorder } =
-    useMapStore();
+  const {
+    renameMap,
+    setBackgroundGeometry,
+    clearBackground,
+    beginTransaction,
+    commitTransaction,
+    resizeBorder,
+  } = useMapStore();
   const fileRef = useRef<HTMLInputElement>(null);
 
   // null = not editing (show doc value); string = user is typing
@@ -134,7 +140,12 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
               min={200}
               value={editingW ?? doc.border.width}
               onChange={(e) => setEditingW(e.target.value)}
-              onBlur={() => commitBorderSize(editingW ?? String(doc.border.width), editingH ?? String(doc.border.height))}
+              onBlur={() =>
+                commitBorderSize(
+                  editingW ?? String(doc.border.width),
+                  editingH ?? String(doc.border.height)
+                )
+              }
               onKeyDown={onBorderKeyDown}
               className="h-8 text-sm"
             />
@@ -146,7 +157,12 @@ export function MapInspector({ bgObjectUrl, onBgAttached, onBgCleared }: Props) 
               min={200}
               value={editingH ?? doc.border.height}
               onChange={(e) => setEditingH(e.target.value)}
-              onBlur={() => commitBorderSize(editingW ?? String(doc.border.width), editingH ?? String(doc.border.height))}
+              onBlur={() =>
+                commitBorderSize(
+                  editingW ?? String(doc.border.width),
+                  editingH ?? String(doc.border.height)
+                )
+              }
               onKeyDown={onBorderKeyDown}
               className="h-8 text-sm"
             />

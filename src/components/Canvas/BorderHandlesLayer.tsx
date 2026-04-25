@@ -10,14 +10,14 @@ type HandleDef = {
 };
 
 const HANDLES: HandleDef[] = [
-  { id: 'tl', cx: () => 0,        cy: () => 0,        cursor: 'nwse-resize' },
-  { id: 't',  cx: (w) => w / 2,   cy: () => 0,        cursor: 'ns-resize'   },
-  { id: 'tr', cx: (w) => w,       cy: () => 0,        cursor: 'nesw-resize' },
-  { id: 'r',  cx: (w) => w,       cy: (_, h) => h / 2, cursor: 'ew-resize'  },
-  { id: 'br', cx: (w) => w,       cy: (_, h) => h,    cursor: 'nwse-resize' },
-  { id: 'b',  cx: (w) => w / 2,   cy: (_, h) => h,    cursor: 'ns-resize'   },
-  { id: 'bl', cx: () => 0,        cy: (_, h) => h,    cursor: 'nesw-resize' },
-  { id: 'l',  cx: () => 0,        cy: (_, h) => h / 2, cursor: 'ew-resize'  },
+  { id: 'tl', cx: () => 0, cy: () => 0, cursor: 'nwse-resize' },
+  { id: 't', cx: (w) => w / 2, cy: () => 0, cursor: 'ns-resize' },
+  { id: 'tr', cx: (w) => w, cy: () => 0, cursor: 'nesw-resize' },
+  { id: 'r', cx: (w) => w, cy: (_, h) => h / 2, cursor: 'ew-resize' },
+  { id: 'br', cx: (w) => w, cy: (_, h) => h, cursor: 'nwse-resize' },
+  { id: 'b', cx: (w) => w / 2, cy: (_, h) => h, cursor: 'ns-resize' },
+  { id: 'bl', cx: () => 0, cy: (_, h) => h, cursor: 'nesw-resize' },
+  { id: 'l', cx: () => 0, cy: (_, h) => h / 2, cursor: 'ew-resize' },
 ];
 
 const HANDLE_SIZE = 10;

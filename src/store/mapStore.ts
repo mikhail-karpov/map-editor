@@ -235,7 +235,11 @@ export const useMapStore = create<MapStore>()((set, get) => ({
   replaceDoc(doc: MapDoc) {
     const b = doc.border;
     const border =
-      b && typeof b.width === 'number' && b.width > 0 && typeof b.height === 'number' && b.height > 0
+      b &&
+      typeof b.width === 'number' &&
+      b.width > 0 &&
+      typeof b.height === 'number' &&
+      b.height > 0
         ? { x: b.x ?? 0, y: b.y ?? 0, width: b.width, height: b.height }
         : DEFAULT_MAP_BORDER;
     set({

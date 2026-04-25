@@ -11,7 +11,15 @@ type SliderProps = {
   className?: string;
 };
 
-function Slider({ value, onValueChange, onValueCommitted, min = 0, max = 100, step = 1, className }: SliderProps) {
+function Slider({
+  value,
+  onValueChange,
+  onValueCommitted,
+  min = 0,
+  max = 100,
+  step = 1,
+  className,
+}: SliderProps) {
   return (
     <SliderPrimitive.Root
       value={value}
